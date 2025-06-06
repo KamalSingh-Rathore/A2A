@@ -1,0 +1,12 @@
+[project]
+name = "a2a"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.12"
+dependencies = [
+    "chardet>=5.2.0",
+    "fastapi>=0.115.12",
+    "fastmcp>=2.6.1",
+    "pathlib>=1.0.1",
+]
+
