@@ -6,7 +6,7 @@ from google.adk.runners import Runner
 from pathlib import Path
 from typing import List
 
-client = genai.Client(api_key="AIzaSyAiEZq0PYR-DL-vrcKZqmH-VGkQZWEaze8")
+client = genai.Client(api_key="")
 model_id = "models/gemini-2.5-flash-preview-04-17"
 
 
