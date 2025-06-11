@@ -40,14 +40,14 @@ def traverse_directory(path: Path, level=0, base_path=None, skip_files=List[str]
                 traverse_directory(item, level + 1, base_path)
 
 
+def zip_extractor(repo_url, extract_to="./repo",skip_files=List[str],skip_directory=List[str]):
+    with zipfile.ZipFile(repo_url, 'r') as f :
+        with TemporaryDirectory(delete=False) as tmpdir:
+            f.extractall(tmpdir)
 
-with zipfile.ZipFile("/home/ubuntu/PycharmProjects/PythonProject/A2A/website-scrapper.zip", 'r') as f :
-    with TemporaryDirectory(delete=False) as tmpdir:
-        f.extractall(tmpdir)
+        pa = Path(tmpdir)
 
-    pa = Path(tmpdir)
-
-    traverse_directory(path=pa,skip_files=[".venv",".git",".gitignore"],skip_directory=["__pycache__","venv1"])
+        traverse_directory(path=pa,skip_files=skip_files,skip_directory=skip_directory)
 
 
 

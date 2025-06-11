@@ -8,6 +8,8 @@ from tempfile import TemporaryDirectory
 from pathlib import Path
 from typing import List
 
+
+
 def traverse_directory(path: Path, level=0, base_path=None, skip_files=List[str],skip_directory=List[str]):
     """
     Traverse the directory and print all files and directories in a tree format.
@@ -53,9 +55,6 @@ def download_github_repo_as_zip(repo_url, extract_to="./repo"):
     response = requests.get(zip_url)
     response.raise_for_status()
 
-    #with zipfile.ZipFile(BytesIO(response.content)) as zip_ref:
-    #    zip_ref.extractall(extract_to)
-    #print(f"Extracted repo to: {extract_to}")
 
     with zipfile.ZipFile(BytesIO(response.content)) as zip_ref:
         with TemporaryDirectory(delete=False) as tmpdir:
@@ -64,19 +63,6 @@ def download_github_repo_as_zip(repo_url, extract_to="./repo"):
         pa = Path(tmpdir)
 
         traverse_directory(path=pa, skip_files=[".venv", ".git", ".gitignore"], skip_directory=["__pycache__", "venv1"])
-
-    #with zipfile.ZipFile(BytesIO(response.content):
-    ## zipfile.ZipFile("/home/ubuntu/PycharmProjects/PythonProject/A2A/website-scrapper.zip", 'r') as f :
-    #    with TemporaryDirectory(delete=False) as tmpdir:
-    #        f.extractall(tmpdir)
-    #
-    #    pa = Path(tmpdir)
-    #
-    #    traverse_directory(path=pa, skip_files=[".venv", ".git", ".gitignore"], skip_directory=["__pycache__", "venv1"])
-
-
-
-
 
 
 download_github_repo_as_zip("https://github.com/rasbt/LLMs-from-scratch")
