@@ -12,7 +12,7 @@ from google.cloud.aiplatform_v1beta1.types import session_service
 
 import zip_extractor,loadinggit
 
-client = genai.Client(api_key="AIzaSyAiEZq0PYR-DL-vrcKZqmH-VGkQZWEaze8")
+client = genai.Client(api_key="")
 model_id = "models/gemini-2.5-flash-preview-04-17"
 
 
