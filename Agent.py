@@ -12,7 +12,7 @@ from google.cloud.aiplatform_v1beta1.types import session_service
 
 import zip_extractor,loadinggit
 
-client = genai.Client(api_key="")
+client = genai.Client(api_key="AIzaSyAiEZq0PYR-DL-vrcKZqmH-VGkQZWEaze8")
 model_id = "models/gemini-2.5-flash-preview-04-17"
 
 
@@ -108,4 +108,3 @@ def run(new_query) -> Generator[Event]:
         # 4. Yield event for upstream processing (e.g., UI rendering)
         yield event
         # Runner implicitly signals agent generator can continue after yielding
-
