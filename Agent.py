@@ -8,8 +8,13 @@ from google.adk.runners import Runner
 from pathlib import Path
 from typing import List, Generator
 
-from google.cloud.aiplatform_v1beta1.types import session_service
+import json
 
+from google.adk.tools.agent_tool import AgentTool
+from google.cloud.aiplatform_v1beta1.types import session_service
+from google.adk.runners import Runner
+from google.adk.sessions import InMemorySessionService
+from google.genai import types
 import zip_extractor,loadinggit
 
 client = genai.Client(api_key="")
@@ -56,16 +61,16 @@ traverse_directory(root,skip_files=['structure.txt', 'content.txt',"uv.lock","di
 
 
 
-base_agent = LlmAgent(
-    model=model_id,
-    name="DocumentationGenerator",
-    description="Generates documentation for a code base based on its file structure and content.",
-    instruction=f"You are a smart assistant for help user in writing documentation for the code base. User will provide the code base file structure and the content of each file. "
-                f"Carefully check the dependency between files and provide a proper documentation so it will be easy to understand for new users in future.",
-    tools = [zip_extractor.zip_extractor,loadinggit.download_github_repo_as_zip],
-)
-
-
+#base_agent = LlmAgent(
+#    model=model_id,
+#    name="DocumentationGenerator",
+#    description="Generates documentation for a code base based on its file structure and content.",
+#    instruction=f"You are a smart assistant for help user in writing documentation for the code base. User will provide the code base file structure and the content of each file. "
+#                f"Carefully check the dependency between files and provide a proper documentation so it will be easy to understand for new users in future.",
+#    tools = [zip_extractor.zip_extractor,loadinggit.download_github_repo_as_zip],
+#)
+#
+#
 
 
 
@@ -80,31 +85,59 @@ documentor_agent = LlmAgent(
 
 
 
-final_agent = SequentialAgent(
+root_agent = LlmAgent(
     name= "DocumentationGeneratorAgent",
     description="An agent that generates documentation for a code base based on its file structure and content.",
-    sub_agents=[base_agent,documentor_agent]
+    tools=[AgentTool(agent=documentor_agent)],
+    #sub_agents=[base_agent,documentor_agent]
 )
 
 
-root_agent = final_agent
+
+session_service = InMemorySessionService()
+
+runner = Runner(
+    agent=root_agent,
+    app_name="DocumentationGeneratorApp",
+    session_service=session_service
+)
+
+
+USER_ID = "user_activities"
+SESSION_ID = "session_activities"
+
+
+async def execute(request):
+
+    await session_service.create_session(
+        app_name="document_app",
+        user_id=USER_ID,
+        session_id=SESSION_ID
+    )
+
+    prompt = (
+        f"User is flying to {request['destination']} from {request['start_date']} to {request['end_date']}, "
+        f"with a budget of {request['budget']}. Suggest 2-3 activities, each with name, description, price estimate, and duration. "
+        f"Respond in JSON format using the key 'activities' with a list of activity objects."
+    )
+
+    message = types.Content(role="user", parts=[types.Part(text=prompt)])
+
+    async for event in runner.run_async(user_id= USER_ID,session_id=SESSION_ID,new_message = message):
+        if event.is_final_response():
+            response_text = event.content.parts[0].text
+            try:
+                parsed = json.loads(response_text)
+                if "activities" in parsed and isinstance(parsed["activities"], list):
+                    return {"activities": parsed["activities"]}
+                else:
+                    print("'activities' key missing or not a list in response JSON")
+                    return {"activities": response_text}  # fallback to raw text
+            except json.JSONDecodeError as e:
+                print("JSON parsing failed:", e)
+                print("Response content:", response_text)
+                return {"activities": response_text}  # fallback to raw text
 
 
 
-# Simplified view of Runner's main loop logic
-def run(new_query) -> Generator[Event]:
-    # 1. Append new_query to session event history (via SessionService)
-    session_service.append_event(session, Event(author='user', content=new_query))
 
-    # 2. Kick off event loop by calling the agent
-    agent_event_generator = root_agent.run_async(context)
-
-    async for event in agent_event_generator:
-        # 3. Process the generated event and commit changes
-        session_service.append_event(session, event) # Commits state/artifact deltas etc.
-        # memory_service.update_memory(...) # If applicable
-        # artifact_service might have already been called via context during agent run
-
-        # 4. Yield event for upstream processing (e.g., UI rendering)
-        yield event
-        # Runner implicitly signals agent generator can continue after yielding

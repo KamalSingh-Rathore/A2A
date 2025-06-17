@@ -59,7 +59,6 @@ def download_github_repo_as_zip(repo_url, extract_to="./repo"):
     with zipfile.ZipFile(BytesIO(response.content)) as zip_ref:
         with TemporaryDirectory(delete=False) as tmpdir:
             zip_ref.extractall(tmpdir)
-
         pa = Path(tmpdir)
 
         traverse_directory(path=pa, skip_files=[".venv", ".git", ".gitignore"], skip_directory=["__pycache__", "venv1"])

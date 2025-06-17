@@ -25,8 +25,6 @@ def traverse_directory(path: Path, level=0, base_path=None, skip_files=List[str]
             f.write(f"{indent}{prefix} {relative_path}\n")
             f.close()
 
-        import chardet
-
         if item.is_file()  and item.name not in skip_files:
             with open(item.absolute(), 'rb') as file_in, open('content.txt', 'a') as file_out:
                 data = file_in.read()
